@@ -38,6 +38,8 @@ const server = createServer((req, res) => {
     if (re.test(url.pathname)) for (const [k, v] of r.headers) res.setHeader(k, v);
   }
   res.setHeader('Content-Type', TYPES[path.extname(file)] || 'application/octet-stream');
+  // Testy uruchamiają się bez linku płatności (tryb demo); część „paywall” podmienia config przez page.route.
+  if (p === '/assets/config.js') { res.end(readFileSync(file, 'utf8').replace(/paymentUrl: '[^']*'/, "paymentUrl: ''")); return; }
   res.end(readFileSync(file));
 });
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
@@ -182,11 +184,12 @@ try {
   step = 'konfiguracja: partner (tylko https) i dane sprzedawcy';
   const CONFIG_SRC = readFileSync(path.join(PUBLIC, 'assets', 'config.js'), 'utf8');
   const withConfig = (partnerUrl) => CONFIG_SRC
+    .replace(/paymentUrl: '[^']*'/, "paymentUrl: ''")
     .replace('enabled: false', 'enabled: true')
     .replace("title: ''", "title: 'Partner testowy'")
     .replace("url: ''", `url: '${partnerUrl}'`)
-    .replace("name: '[imię i nazwisko / firma]'", "name: 'Jan Nowak'")
-    .replace("email: '[e-mail kontaktowy]'", "email: 'kontakt@example.com'");
+    .replace(/(seller: Object\.freeze\(\{\s*name: )'[^']*'/, "$1'Jan Nowak'")
+    .replace(/(address: '[^']*',\s*email: )'[^']*'/, "$1'kontakt@example.com'");
   let cfgBody = withConfig('https://partner.example.com/skd?utm_source=kzp');
   await page.route('**/assets/config.js', (route) => route.fulfill({ status: 200, contentType: 'text/javascript; charset=utf-8', body: cfgBody }));
   await page.goto(base);
@@ -219,7 +222,7 @@ step = 'paywall: start';
 try {
   const SID = 'cs_test_a1B2c3D4e5F6g7H8';
   const PAY_URL = 'https://buy.stripe.com/test_kzp123';
-  const cfgPaid = readFileSync(path.join(PUBLIC, 'assets', 'config.js'), 'utf8').replace("paymentUrl: ''", `paymentUrl: '${PAY_URL}'`);
+  const cfgPaid = readFileSync(path.join(PUBLIC, 'assets', 'config.js'), 'utf8').replace(/paymentUrl: '[^']*'/, `paymentUrl: '${PAY_URL}'`);
   assert.ok(cfgPaid.includes(PAY_URL));
   const pctx = await browser.newContext({ acceptDownloads: true, viewport: { width: 1280, height: 900 } });
   let verifyReady = true, orderRef = null, stripeHits = [], verifyCalls = [], downloads = 0;
