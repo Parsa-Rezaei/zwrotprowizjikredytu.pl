@@ -12,16 +12,16 @@ window.KZP_CONFIG = Object.freeze({
 
   // Link płatności Stripe (Payment Link, tylko BLIK), np. 'https://buy.stripe.com/abc123'.
   // Pusty = sprzedaż wyłączona (na komputerze lokalnym działa tryb demonstracyjny).
-  paymentUrl: '',
+  paymentUrl: 'https://buy.stripe.com/4gM3cx6PN38x7b44B183C03',
 
   // Weryfikacja płatności po stronie serwera (functions/api/verify.js na Cloudflare Pages).
   verifyEndpoint: '/api/verify',
 
   // Dane sprzedawcy do regulaminu, polityki prywatności i stopki.
   seller: Object.freeze({
-    name: '[imię i nazwisko / firma]',
-    address: '[adres]',
-    email: '[e-mail kontaktowy]',
+    name: 'Mohammad Parsa Rezaei',
+    address: 'ul. Politechniki 3B, pok. 717, 93-590 Łódź',
+    email: 'parsa.rezaei.2014@gmail.com',
     nip: ''
   }),
 
